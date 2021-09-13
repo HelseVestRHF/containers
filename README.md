@@ -33,9 +33,15 @@ Mon Sep 13 13:46:50 UTC 2021
 
 On a MacOS host the above call of running a docker container and the 'date' program and removing it again took 1.4seconds (on a Linux host the same call took about 0.5seconds).
 
-## Some background
+## Some background information
 
 Running a container on a linux system is probably the easiest to explain. Linux comes with security measures like control groups (cgroups) that allocate resources from the host computer like CPU, memory and networking and provide them to programs. Programs that are running in an environment provided by cgroups (and namespaces) are separated from the host system. To these programs other resources do not exist. Containers use this to to provide a minimal Linux inside the container with no access to host users or host storage.
 
-On MacOS and Windows the process is a little bit more complex. Containers are linux based so in order to provide the 'docker run' command from above the docker environment simulates a Linux computer using a virtual machine. This is done fully transparent to the user but all commands go through this additional virtualization layer. One of the side-effects of this tunneling is that container can only access the storage that the virtualization solution provides - usually much less compared to the storage on the host system. You might therefore run into problems of 'not-enough-memory'. In such cases 'docker' needs to extend its space reserved for containers, which is done in the docker dashbord.
+On MacOS and Windows the process is a little bit more complex. Containers are linux based so in order to provide the 'docker run' command from above the docker environment simulates a Linux computer using a virtual machine. This is done fully transparent to the user but all commands go through this additional virtualization layer. One of the side-effects of this tunneling is that container can only access the storage that the virtualization solution provides - usually much less compared to the storage on the host system. You might therefore run into problems of 'not-enough-memory'. In such cases 'docker' needs to extend its space reserved for containers, which is done in the docker dashbord. After a restart of docker the containers will have more storage space available.
+
+## Where do containers come from?
+
+There is a way to create a container starting from zero - but not many people do this. Easiest is to start with an already existing container. Container's consist of layers (yes, just like an onion). The innermost layer is usually a basic Linux operating system like debian or ubuntu. The layer is part of a 'union filesystem'. Such a filesystem was initially developed for test operating systems starting from a CD or DVD. A DVD is only written once but a running linux operating system require a writable file system to function. In order to be able to write to a read-only filesystem the union filesystem was developed to sit as a layer 'ontop' of the read-only first layer. If a program tried to write something instead of writing to DVD the written data ends up in a separate layer (in memory). For all programs such a onion filesystem looks like one single system where layers are merged with files in the places that the OS expects. The same mechanism is used in containers to allow them to be build in pieces. Container may share such underlying layers to save storage space. 
+
+So the answer where containers come from can be answered with they come from other containers. Containers all the way down...
 

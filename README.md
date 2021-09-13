@@ -45,3 +45,40 @@ There is a way to create a container starting from zero - but not many people do
 
 So the answer to where containers come from is, they come from other containers. Containers all the way down...
 
+We can download and start our first container from the docker registry. Here we ask for 'debian', which is a small container only 125MB in size.
+
+```bash
+% docker run --rm -it debian /bin/bash 
+docker run --rm -it debian /bin/bash 
+Unable to find image 'debian:latest' locally
+latest: Pulling from library/debian
+955615a668ce: Already exists 
+Digest: sha256:08db48d59c0a91afb802ebafc921be3154e200c452e4d0b19634b426b03e0e25
+Status: Downloaded newer image for debian:latest
+root@61dc11963da5:/# 
+```
+
+The docker command we use is 'run'. If the container 'debian' does not exist it is downloaded for us from the docker registry on the internet. The option '--rm' will clean up any new layer we might create inadvertenty (to save space). The option '-it' is a shortcut for 'interactive terminal' so we can interact with the running container. The program we start inside the container is '/bin/bash' a shell whos prompt we see on the last line. A simple 'quit' typed in there will close the container again and remove any trace of it.
+
+Instead of /bin/bash we can also start any other program that is available inside the debian container:
+
+```bash
+docker run --rm -it debian date
+
+Mon Sep 13 14:39:35 UTC 2021
+```
+
+or
+
+```bash
+docker run --rm -it debian df -h
+```
+
+In truth the number of programs already present in a debian container is just
+
+```bash
+docker run --rm -it debian /bin/bash -c "ls /bin | wc -l"
+
+69
+```
+

@@ -63,12 +63,12 @@ The docker command we use is 'run'. If the container 'debian' does not exist it 
 Instead of /bin/bash we can also start any other program that is available inside the debian container:
 
 ```bash
-docker run --rm -it debian date
+docker run --rm debian date
 
 Mon Sep 13 14:39:35 UTC 2021
 ```
 
-or
+Here we don't need the option '-it' as *date* does not need an interactive terminal. We just want to see its output. Here another example using the disk free (df) program:
 
 ```bash
 docker run --rm -it debian df -h
@@ -81,4 +81,48 @@ docker run --rm -it debian /bin/bash -c "ls /bin | wc -l"
 
 69
 ```
+
+For any real work we need to add a layer to have our program inside our container.
+
+## Add one layer
+
+To add a program to a container we can use the package manager of the base layers operating system. For our debian OS we can use the 'apt-get' command to install for example R.
+
+```bash
+docker run --rm -it debian /bin/bash
+root@54da72ddb3cc:/# apt-get update
+...
+root@54da72ddb3cc:/# apt-get install r-base
+...
+```
+
+The above three lines will install R inside the container but closing the container and opening it again any change inside the container - like the installation of R will be lost. In order to keep our changes we will have to keep the new layer in our own docker image.
+
+Keep the first container running and open another terminal. In order to 'commit' the above container with all its changes we need to know its docker identifier. A running container has a random ID (some letters and numbers) that are displayed on the prompt above but can also be seen using:
+
+```bash
+docker ps
+```
+
+Now that we have the id of our container (54da72ddb3cc) we can 'commit' it as a new container with:
+
+```bash
+docker commit 54da72ddb3cc mydebianr
+```
+
+If this works you can see your new container in the list of docker images:
+
+```bash
+docker images
+```
+
+Using that container is now as easy as:
+
+```bash
+docker run --rm -it mydebianr R
+```
+
+## Doing the same with more structure - Dockerfile
+
+If there are many layers the above manual way of adding software lacks structure and cannot be easily repeated without lots of documentation. Docker provides a better way of keeping track of how containers are build using Dockerfiles. These files are human readable text files that specify in detail how a container should be build. Sharing such a Dockerfile is sufficient to allow other users to build the same container.
 

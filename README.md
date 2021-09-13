@@ -18,7 +18,7 @@ compared to virtual machines. They provide a much faster and cheaper solution co
 - Access to data: virtual machines need to connect to external storage using a shared file system, containers can do the same but can also 'mount' local directories - with some speed penalties if the container host is not Linux
 - Use-case: virtual machines are used to replace physical machines, container services are used to replace programs
 
-Especially the last part is of interest in understanding why containers are so useful. As a container starts up very fast it can be used like a program. Most containers are started and are automatically removed after they finish. They only have an effect on the data they process. A container might therefore run only for a second based on the computation it performs. Containers can of course also run forever and react to incoming data, process them and send back the results.
+Especially the last part is of interest in understanding why containers are so useful. As a container starts up very fast it can be used like a program. Most containers are started and are automatically removed after they finish. They only have an effect on the data they process. A container might therefore run only for a second based on the computation it performs. Containers can of course also run forever and react to incoming data, process them and send back the results. Such setups are more involved as containers do not come prepared with system services like 'cron' and 'systemd'.
 
 
 ## How to start
@@ -31,5 +31,11 @@ It is easiest to start using containers on MacOS, Windows or Linux with the 'doc
 Mon Sep 13 13:46:50 UTC 2021
 ```
 
-On a MacOS host the above call of starting a container and running the 'date' program and removing it again took 1.4seconds (on a Linux host the same call took about 0.5seconds).
+On a MacOS host the above call of running a docker container and the 'date' program and removing it again took 1.4seconds (on a Linux host the same call took about 0.5seconds).
+
+## Some background
+
+Running a container on a linux system is probably the easiest to explain. Linux comes with security measures like control groups (cgroups) that allocate resources from the host computer like CPU, memory and networking and provide them to programs. Programs that are running in an environment provided by cgroups (and namespaces) are separated from the host system. To these programs other resources do not exist. Containers use this to to provide a minimal Linux inside the container with no access to host users or host storage.
+
+On MacOS and Windows the process is a little bit more complex. Containers are linux based so in order to provide the 'docker run' command from above the docker environment simulates a Linux computer using a virtual machine. This is done fully transparent to the user but all commands go through this additional virtualization layer. One of the side-effects of this tunneling is that container can only access the storage that the virtualization solution provides - usually much less compared to the storage on the host system. You might therefore run into problems of 'not-enough-memory'. In such cases 'docker' needs to extend its space reserved for containers, which is done in the docker dashbord.
 

@@ -20,6 +20,39 @@ compared to virtual machines. They provide a much faster and cheaper solution co
 
 Especially the last part is of interest in understanding why containers are so useful. As a container starts up very fast it can be used like a program. Most containers are started and are automatically removed after they finish. They only have an effect on the data they process. A container might therefore run only for a second based on the computation it performs. Containers can of course also run forever and react to incoming data, process them and send back the results. Such setups are more involved as containers do not come prepared with system services like 'cron' and 'systemd'.
 
+## Quickstart
+
+Images are blueprints for containers waiting to run. See what images are available on your computer.
+
+```bash
+% docker images
+```
+
+Download and start a docker container, here a specific version of Ubuntu.
+
+```bash
+% docker run --rm -it ubuntu:20.04 /bin/bash
+```
+
+See all currently running or stopped docker containers and their container IDs.
+
+```bash
+% docker ps -a
+```
+
+Stop and remove a container with the ID "abcdedf":
+
+```bash
+% docker stop abcdef
+% docker rm abcdef
+```
+
+Remove an image:
+
+```bash
+% docker rmi ubuntu:20.04
+```
+
 
 ## How to start
 
@@ -45,7 +78,9 @@ There is a way to create a container starting from zero - but not many people do
 
 So the answer to where containers come from is, they come from other containers. Containers all the way down...
 
-We can download and start our first container from the docker registry. Here we ask for 'debian', which is a small container only 125MB in size.
+A downloaded container is called an *image*. The same image can be run multiple times. Each of those instances is a *container*. 
+
+We can download and start our first image from the docker registry. Here we ask for 'debian', which is a small image only 125MB in size.
 
 ```bash
 % docker run --rm -it debian /bin/bash 
@@ -58,7 +93,7 @@ Status: Downloaded newer image for debian:latest
 root@61dc11963da5:/# 
 ```
 
-The docker command we use is 'run'. If the container 'debian' does not exist it is downloaded for us from the docker registry on the internet. The option '--rm' will clean up any new layer we might create inadvertenty (to save space). The option '-it' is a shortcut for 'interactive terminal' so we can interact with the running container. The program we start inside the container is '/bin/bash' a shell whos prompt we see on the last line. A simple 'quit' typed in there will close the container again and remove any trace of it.
+The docker command we use is 'run'. The created container has the random ID "61dc11963da5". If the image 'debian' does not exist it is downloaded for us from the docker registry on the internet. The option '--rm' will clean up any new layer we might create inadvertenty, it is a good option to always include to save space. The option '-it' is a shortcut for 'interactive terminal', so we can interact with the running container. The program we start inside the container is '/bin/bash' a shell whos prompt we see on the last line. A simple 'quit' typed in there will close the container again and remove any trace of it. In the above call we end up on a new shell inside the container (id: 61dc11963da5). We are listed as the root user - a default user inside a docker container.
 
 Instead of /bin/bash we can also start any other program that is available inside the debian container:
 

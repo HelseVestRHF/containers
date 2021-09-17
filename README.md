@@ -159,5 +159,56 @@ docker run --rm -it mydebianr R
 
 ## Doing the same with more structure - Dockerfile
 
-If there are many layers the above manual way of adding software lacks structure and cannot be easily repeated without lots of documentation. Docker provides a better way of keeping track of how containers are build using Dockerfiles. These files are human readable text files that specify in detail how a container should be build. Sharing such a Dockerfile is sufficient to allow other users to build the same container.
+If there are many layers the above manual way of adding software lacks structure and cannot be easily repeated without lots of documentation. Docker provides a better way of keeping track of how containers are build using Dockerfiles. These files are human readable text files that specify in detail how a container should be build. Sharing such a Dockerfile is sufficient to allow other users to build the same container. At a minimum a dockerfile just contains the name of the image it is based on and a command that adjusts the image, installs some software for example:
 
+```bash
+FROM: ubuntu:20.04
+
+RUN apt-get update && apt-get install -y bc
+```
+
+## How to keep your data around - outside the container
+
+Containers are very much suited as a means to separate programs from data. That way updates of the software can happen while keeping all the data in place.
+
+### Share a directory on your laptop
+
+A basic use for containers is to run some analysis on data available on your system. For those purposes the container just need access to a folder for reading and to one folder for writing - if there are outputs. Such simple folder shares are specified during the run command with '-v'. One important issue is that the option needs a full path.
+
+```bash
+% docker run --rm -it -v /path/to/data:/input -v /path/to/output:/output ubuntu /bin/bash
+```
+
+Started like above the two '-v' options will make a '/path/to/data' outside the container available inside as '/input'. The '/path/to/output' from outside the container will be mounted inside the container in '/output'.
+
+This very easy option has some downsides, especially if used on MacOS and Windows. The mounts on both of those platforms are not very performant as data is copied first into the virtual machine and afterwards becomes available to the container.
+
+### Share a volume
+
+One step up from the mounts is to use the containers own union file system for storage. In this case a container has a reference to a 'volume'. Such volumes are data containers that don't have any software, just storage. If a Dockerfile references such a volume and writes data to it those files will still be available after a container reboots. A volume called 'mydata' can be created and added to an ubuntu docker container with
+
+```bash
+% docker volume create mydata
+% docker run --rm -it --mount source=mydata,destination=/mydata ubuntu /bin/bash
+```
+
+The data will be available in the containers /mydata directory.
+
+With the above tools we can create more complex scenarios. Lets say we have an application (like a website) that needs to talk to a database. The application would go into one container, the database software would go into another container and the data from that database goes into a volume. The main reason to do those complex setups is to allow the solution to a) update the different pieces independently from each other without worries about data migration and b) to make the solution scale with more users as we can duplicate some of the containers. That of course requires another container that contains a software like 'traffic' to distribute users to the different web-containers. In such a scenario all web-server containers are containers of the same container image and based on the current number of users one could add or remove more of them.
+
+A word of caution: the scalability and improvements in keeping the system updated come at the cost of a more complex environment in which suddenly it becomes important to understand and debug networking and routing. Also, nothing is faster than running directly on the provided hardware. If speed is the ultimate goal a containerized environment is a good testing environment, ultimately such a system should run on dedicated hardware.
+
+
+## Containers talk to containers
+
+Connections between containers is done on the network level. Such connections are also of interest to interact with software inside a container from the outside - lets say a website running inside the container should become accessible on the hosts web-browser. An example for such a setup is R-server, an environment for data analysis. Similar to the 'docker run' commands to make directories accessible from the outside with '-v' there is also a command to map ports from inside the container to the outside. System services are using predefined ports to provide such services. For a normal website for example its port number 80 or 443. A container with a running webserver inside will have this port inside mapped to another port outside. Only the outside port is the one we can access using the web-interface:
+
+```bash
+% docker run --rm -it -p 80:99 ngnix /bin/bash
+```
+
+In the above example the port 80 from inside the container is mapped to port 99 on our machine. We can reach the website afterwards if we navigate to localhost:99.
+
+ The simplest of such solutions is to assign one container to one network port. This way two container will each know the port of the partner and can send messages (REST-API).
+
+As soon as we reach such systems we need a way to orchestrate containers making sure that containers that belong together are started together, that they can find each other on the network and that no other container can eavesdrop on the connection. Of course the best known software to do this orchestration is kubernetes. Before we go there here a first step in that direction - docker-compose. Similar to the Dockerfile format to specify individual containers 
